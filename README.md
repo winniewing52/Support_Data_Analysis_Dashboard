@@ -8,11 +8,11 @@ A modern, interactive Streamlit dashboard for analyzing support data from mercha
 - **Modern UI**: Clean, light-themed interface with smooth animations and glass-effect cards
 - **Six Key Metrics**:
   1. Total Questions & Merchants
-  2. Most Requested Features
-  3. Feature Distribution by Support Tier
-  4. Questions by Support Tier
-  5. Top Sales Curiosity Topics
-  6. Sales-Related Questions by Support Tier
+  2. Most Features Asked by Merchant
+  3. Support Tier Overview
+  4. Feature Distribution by Support Tier
+  5. Top Sales with Most Customer's Curiosity
+  6. IT Support Tier by Sales
 
 - **Interactive Visualizations**: Charts and tables with hover effects
 - **Real-time Analysis**: Instant insights from your support data
