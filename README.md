@@ -59,7 +59,7 @@ Your data file should contain the following columns:
 | `Merchants` | Merchant name | Wingles, Rapoling |
 | `Sales` | Sales representative name | John Doe, Jane Smith |
 | `Issue` | The question or topic asked | "Appt > reminder inquiries" |
-| `Feature Catgegroy` | Feature category | Appointment, Order, etc. |
+| `Feature Category` | Feature category | Appointment, Order, etc. |
 | `IT Support Tier` | Support tier level | First Layer, Operation, etc. |
 
 ## 🎨 Dashboard Features
