@@ -535,7 +535,7 @@ if uploaded_file or google_sheet_url:
     elif section == "👥 Sales & Support Tier":
         show_sales_support_tier(df)
     elif section == "📅 Month Comparison":
-        show_month_comparison(df, uploaded_file, google_sheet_url)
+        show_month_comparison(data_source, uploaded_file, google_sheet_url)
         
 else:
     # Modern welcome screen
