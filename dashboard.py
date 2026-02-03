@@ -8,6 +8,7 @@ from metrics.metric3_feature_support_tier import show_feature_support_tier
 from metrics.metric4_support_tier import show_support_tier
 from metrics.metric5_top_sales_curiosity import show_top_sales_curiosity
 from metrics.metric6_sales_support_tier import show_sales_support_tier
+from metrics.metric7_month_comparison import show_month_comparison
 
 # Page configuration
 st.set_page_config(
@@ -483,7 +484,8 @@ if uploaded_file or google_sheet_url:
             "📊 Support Tier Overview",
             "🎨 Feature & Support Tier",
             "⭐ Sales Performance",
-            "👥 Sales & Support Tier"
+            "👥 Sales & Support Tier",
+            "📅 Month Comparison"
         ],
         key="nav_radio",
         label_visibility="collapsed"
@@ -532,6 +534,8 @@ if uploaded_file or google_sheet_url:
         show_top_sales_curiosity(df)
     elif section == "👥 Sales & Support Tier":
         show_sales_support_tier(df)
+    elif section == "📅 Month Comparison":
+        show_month_comparison(df)
         
 else:
     # Modern welcome screen
