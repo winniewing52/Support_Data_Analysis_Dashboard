@@ -172,30 +172,33 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
     st.markdown("---")
     st.subheader(f"📊 {month1_label} vs {month2_label}")
     
-    # Key metrics comparison
+    # Calculate key metrics
+    metric1_total = len(df1)
+    metric2_total = len(df2)
+    questions_change = metric2_total - metric1_total
+    questions_change_pct = (questions_change / metric1_total * 100) if metric1_total > 0 else 0
+    
+    metric1_merchants = df1['Merchants'].nunique() if 'Merchants' in df1.columns else 0
+    metric2_merchants = df2['Merchants'].nunique() if 'Merchants' in df2.columns else 0
+    merchants_change = metric2_merchants - metric1_merchants
+    
+    # Show individual metric cards for quick reference
     col1, col2 = st.columns(2)
     
     with col1:
-        metric1_total = len(df1)
-        metric2_total = len(df2)
-        change = metric2_total - metric1_total
-        change_pct = (change / metric1_total * 100) if metric1_total > 0 else 0
         st.metric(
             "Total Questions",
             metric2_total,
-            f"{change:+d} ({change_pct:+.1f}%)"
+            f"{questions_change:+d} ({questions_change_pct:+.1f}%)"
         )
     
     with col2:
-        metric1_merchants = df1['Merchants'].nunique() if 'Merchants' in df1.columns else 0
-        metric2_merchants = df2['Merchants'].nunique() if 'Merchants' in df2.columns else 0
-        change = metric2_merchants - metric1_merchants
         st.metric(
             "Total Merchants",
             metric2_merchants,
-            f"{change:+d}"
+            f"{merchants_change:+d}"
         )
-
+    
     st.markdown("---")
     
     # Detailed comparison tables
@@ -203,31 +206,13 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
     
     with comparison_tabs[0]:
         st.subheader("Detailed Comparison")
-        comparison_data = {
-            "Metric": [
-                "Total Questions",
-                "Unique Merchants",
-                "Unique Sales",
-                "Unique Features",
-                "Avg Questions per Merchant"
-            ],
-            month1_label: [
-                len(df1),
-                df1['Merchants'].nunique() if 'Merchants' in df1.columns else 0,
-                df1['Sales'].nunique() if 'Sales' in df1.columns else 0,
-                df1['Feature'].nunique() if 'Feature' in df1.columns else 0,
-                f"{len(df1) / (df1['Merchants'].nunique() if df1['Merchants'].nunique() > 0 else 1):.2f}" if 'Merchants' in df1.columns else "N/A"
-            ],
-            month2_label: [
-                len(df2),
-                df2['Merchants'].nunique() if 'Merchants' in df2.columns else 0,
-                df2['Sales'].nunique() if 'Sales' in df2.columns else 0,
-                df2['Feature'].nunique() if 'Feature' in df2.columns else 0,
-                f"{len(df2) / (df2['Merchants'].nunique() if df2['Merchants'].nunique() > 0 else 1):.2f}" if 'Merchants' in df2.columns else "N/A"
-            ]
+        summary_data = {
+            "Metric": ["Total Questions", "Total Merchants"],
+            month1_label: [metric1_total, metric1_merchants],
+            month2_label: [metric2_total, metric2_merchants]
         }
-        comparison_df = pd.DataFrame(comparison_data)
-        st.dataframe(comparison_df, use_container_width=True)
+        summary_df = pd.DataFrame(summary_data)
+        st.dataframe(summary_df, use_container_width=True, hide_index=True)
     
     with comparison_tabs[1]:
         st.subheader("Top Merchants Comparison")
@@ -277,8 +262,6 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
             sales_comparison = sales_comparison.sort_values(f'{month2_label}', ascending=False).head(10)
             sales_comparison.index = sales_comparison.index + 1
             
-            st.dataframe(sales_comparison, use_container_width=True)
-            
             # Bar chart comparison
             if not sales_comparison.empty:
                 fig = go.Figure(data=[
@@ -294,6 +277,8 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
                     height=400
                 )
                 st.plotly_chart(fig, use_container_width=True)
+            
+            st.dataframe(sales_comparison, use_container_width=True)
         else:
             st.info("No sales data available")
     
