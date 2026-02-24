@@ -5,8 +5,35 @@ import plotly.express as px
 def show_support_tier(df):
     st.header("Feature & Support Tier")
     
+    # Add sorting option
+    sort_option = st.selectbox(
+        "Sort by:",
+        ["Default", "Highest to Lowest", "Lowest to Highest"],
+        key="sort_metric4"
+    )
+    
     # Prepare data for interactive chart
     feature_tier = df.groupby(['Features Category', 'IT Support Tier']).size().reset_index(name='Count')
+    
+    # Calculate total count per feature for sorting
+    feature_totals = feature_tier.groupby('Features Category')['Count'].sum().reset_index()
+    feature_totals.columns = ['Features Category', 'Total']
+    
+    # Apply sorting based on selected option
+    if sort_option == "Default":
+        feature_totals = feature_totals.sort_values('Features Category')
+    elif sort_option == "Highest to Lowest":
+        feature_totals = feature_totals.sort_values('Total', ascending=False)
+    elif sort_option == "Lowest to Highest":
+        feature_totals = feature_totals.sort_values('Total', ascending=True)
+    
+    # Reorder feature_tier based on sorted feature_totals
+    feature_tier['Features Category'] = pd.Categorical(
+        feature_tier['Features Category'],
+        categories=feature_totals['Features Category'].tolist(),
+        ordered=True
+    )
+    feature_tier = feature_tier.sort_values('Features Category')
     
     st.subheader("Interactive Chart: IT Support Tier by Feature Category")
     st.write("*Click on the legend items to show/hide specific support tiers*")

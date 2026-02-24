@@ -14,6 +14,12 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
     """
     st.header("📅 Month-to-Month Comparison (by Sheet)")
 
+    def sort_for_bar_chart(df_in: pd.DataFrame, sort_col: str, order: str) -> pd.DataFrame:
+        if df_in.empty or sort_col not in df_in.columns:
+            return df_in
+        ascending = order == "Lowest"
+        return df_in.sort_values(sort_col, ascending=ascending)
+
     def clean_df(df_in: pd.DataFrame) -> pd.DataFrame:
         df_out = df_in.copy()
         df_out.columns = df_out.columns.astype(str).str.strip()
@@ -239,9 +245,19 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
             
             # Bar chart comparison
             if not features_comparison.empty:
+                sort_order_features = st.selectbox(
+                    "Bar chart sort (by Month 2 count)",
+                    ["Highest", "Lowest"],
+                    key="features_bar_sort"
+                )
+                features_chart_data = sort_for_bar_chart(
+                    features_comparison,
+                    f'{month2_label}',
+                    sort_order_features
+                )
                 fig = go.Figure(data=[
-                    go.Bar(name=month1_label, x=features_comparison['Feature'], y=features_comparison[f'{month1_label}']),
-                    go.Bar(name=month2_label, x=features_comparison['Feature'], y=features_comparison[f'{month2_label}'])
+                    go.Bar(name=month1_label, x=features_chart_data['Feature'], y=features_chart_data[f'{month1_label}']),
+                    go.Bar(name=month2_label, x=features_chart_data['Feature'], y=features_chart_data[f'{month2_label}'])
                 ])
                 fig.update_layout(
                     title=f"Top Features: {month1_label} vs {month2_label}",
@@ -290,9 +306,19 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
             
             # Bar chart comparison
             if not tier_comparison.empty:
+                sort_order_tier = st.selectbox(
+                    "Bar chart sort (by Month 2 count)",
+                    ["Highest", "Lowest"],
+                    key="tier_bar_sort"
+                )
+                tier_chart_data = sort_for_bar_chart(
+                    tier_comparison,
+                    f'{month2_label}',
+                    sort_order_tier
+                )
                 fig = go.Figure(data=[
-                    go.Bar(name=month1_label, x=tier_comparison['IT Support Tier'], y=tier_comparison[f'{month1_label}']),
-                    go.Bar(name=month2_label, x=tier_comparison['IT Support Tier'], y=tier_comparison[f'{month2_label}'])
+                    go.Bar(name=month1_label, x=tier_chart_data['IT Support Tier'], y=tier_chart_data[f'{month1_label}']),
+                    go.Bar(name=month2_label, x=tier_chart_data['IT Support Tier'], y=tier_chart_data[f'{month2_label}'])
                 ])
                 fig.update_layout(
                     title=f"Support Tier Distribution: {month1_label} vs {month2_label}",
@@ -323,12 +349,25 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
             ).fillna(0)
             
             st.write("*Click on the legend items to show/hide specific support tiers*")
+
+            sort_order_feature_tier = st.selectbox(
+                "Bar chart sort (by Month 2 total)",
+                ["Highest", "Lowest"],
+                key="feature_tier_bar_sort"
+            )
+            feature_totals = (
+                feature_tier_comparison.groupby('Features Category')[f'{month2_label}']
+                .sum()
+                .sort_values(ascending=sort_order_feature_tier == "Lowest")
+            )
+            ordered_features = feature_totals.index.tolist()
             
             # Create comparison bar chart
             fig = go.Figure()
             
             for tier in feature_tier_comparison['IT Support Tier'].unique():
                 tier_data = feature_tier_comparison[feature_tier_comparison['IT Support Tier'] == tier]
+                tier_data = tier_data.set_index('Features Category').reindex(ordered_features).reset_index()
                 fig.add_trace(go.Bar(
                     x=tier_data['Features Category'],
                     y=tier_data[f'{month1_label}'],
@@ -337,6 +376,7 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
             
             for tier in feature_tier_comparison['IT Support Tier'].unique():
                 tier_data = feature_tier_comparison[feature_tier_comparison['IT Support Tier'] == tier]
+                tier_data = tier_data.set_index('Features Category').reindex(ordered_features).reset_index()
                 fig.add_trace(go.Bar(
                     x=tier_data['Features Category'],
                     y=tier_data[f'{month2_label}'],
@@ -376,9 +416,19 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
             
             # Bar chart comparison
             if not sales_comparison.empty:
+                sort_order_sales = st.selectbox(
+                    "Bar chart sort (by Month 2 count)",
+                    ["Highest", "Lowest"],
+                    key="sales_bar_sort"
+                )
+                sales_chart_data = sort_for_bar_chart(
+                    sales_comparison,
+                    f'{month2_label}',
+                    sort_order_sales
+                )
                 fig = go.Figure(data=[
-                    go.Bar(name=month1_label, x=sales_comparison['Sales'], y=sales_comparison[f'{month1_label}']),
-                    go.Bar(name=month2_label, x=sales_comparison['Sales'], y=sales_comparison[f'{month2_label}'])
+                    go.Bar(name=month1_label, x=sales_chart_data['Sales'], y=sales_chart_data[f'{month1_label}']),
+                    go.Bar(name=month2_label, x=sales_chart_data['Sales'], y=sales_chart_data[f'{month2_label}'])
                 ])
                 fig.update_layout(
                     title=f"Top Sales: {month1_label} vs {month2_label}",
@@ -407,7 +457,18 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
             sales_tier_combined = pd.concat([sales_tier1, sales_tier2], ignore_index=True)
             
             # Create ordered x-axis labels
-            unique_sales = sorted(sales_tier_combined['Sales'].unique())
+            sort_order_sales_tier = st.selectbox(
+                "Bar chart sort (by Month 2 total)",
+                ["Highest", "Lowest"],
+                key="sales_tier_bar_sort"
+            )
+            sales_totals = (
+                sales_tier_combined[sales_tier_combined['Month'] == month2_label]
+                .groupby('Sales')['Count']
+                .sum()
+                .sort_values(ascending=sort_order_sales_tier == "Lowest")
+            )
+            unique_sales = sales_totals.index.tolist()
             ordered_labels = []
             for sales in unique_sales:
                 ordered_labels.append(f"{sales} ({month1_label})")

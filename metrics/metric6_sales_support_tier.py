@@ -6,8 +6,35 @@ def show_sales_support_tier(df):
     df.columns = df.columns.str.strip()
     st.header("IT Support Tier for Each Sales")
     
+    # Add sorting option
+    sort_option = st.selectbox(
+        "Sort by:",
+        ["Default", "Highest to Lowest", "Lowest to Highest"],
+        key="sort_metric6"
+    )
+    
     # Prepare data for interactive chart
     sales_tier = df.groupby(['Sales', 'IT Support Tier']).size().reset_index(name='Count')
+    
+    # Calculate total count per sales person for sorting
+    sales_totals = sales_tier.groupby('Sales')['Count'].sum().reset_index()
+    sales_totals.columns = ['Sales', 'Total']
+    
+    # Apply sorting based on selected option
+    if sort_option == "Default":
+        sales_totals = sales_totals.sort_values('Sales')
+    elif sort_option == "Highest to Lowest":
+        sales_totals = sales_totals.sort_values('Total', ascending=False)
+    elif sort_option == "Lowest to Highest":
+        sales_totals = sales_totals.sort_values('Total', ascending=True)
+    
+    # Reorder sales_tier based on sorted sales_totals
+    sales_tier['Sales'] = pd.Categorical(
+        sales_tier['Sales'],
+        categories=sales_totals['Sales'].tolist(),
+        ordered=True
+    )
+    sales_tier = sales_tier.sort_values('Sales')
     
     st.subheader("Interactive Chart: IT Support Tier by Sales")
     st.write("*Click on the legend items to show/hide specific support tiers*")
