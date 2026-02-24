@@ -9,7 +9,8 @@ from metrics.metric3_feature_support_tier import show_feature_support_tier
 from metrics.metric4_support_tier import show_support_tier
 from metrics.metric5_top_sales_curiosity import show_top_sales_curiosity
 from metrics.metric6_sales_support_tier import show_sales_support_tier
-from metrics.metric7_month_comparison import show_month_comparison
+from metrics.metric7_week_comparison import show_week_comparison
+from metrics.metric8_month_comparison import show_month_comparison
 
 # Page configuration
 st.set_page_config(
@@ -454,6 +455,9 @@ if uploaded_file or google_sheet_url:
         mask = df[existing_critical].notna().any(axis=1) & (df[existing_critical].astype(str).replace('', pd.NA).notna().any(axis=1))
         df = df[mask]
 
+    # Store the full unfiltered dataframe for Week Comparison
+    df_full = df.copy()
+
     # Week filter (Whole Month or dynamically detected weeks)
     week_col = 'Week' if 'Week' in df.columns else df.columns[0]
     
@@ -477,12 +481,15 @@ if uploaded_file or google_sheet_url:
         week_options,
         help="Filter rows where the week column contains week numbers. Choose Whole Month to see all."
     )
+    
+    # Apply week filter only for non-comparison sections
+    df_filtered = df.copy()
     if week_filter != "Whole Month" and week_col:
         key = week_filter.split()[-1]  # "1".."4"
-        week_series = df[week_col].astype(str)
+        week_series = df_filtered[week_col].astype(str)
         week_mask = week_series.str.contains(fr"W\s*{key}", case=False, na=False) | week_series.str.fullmatch(key)
-        df = df[week_mask]
-    if df.empty:
+        df_filtered = df_filtered[week_mask]
+    if df_filtered.empty:
         st.warning("No data for the selected week filter.")
         st.stop()
     
@@ -497,7 +504,8 @@ if uploaded_file or google_sheet_url:
             "🎨 Feature & Support Tier",
             "⭐ Sales Performance",
             "👥 Sales & Support Tier",
-            "📅 Month Comparison"
+            "Week Comparison",
+            "🗓️ Month Comparison"
         ],
         key="nav_radio",
         label_visibility="collapsed"
@@ -521,9 +529,9 @@ if uploaded_file or google_sheet_url:
             </p>
         </div>
         """.format(
-            len(df),
-            df['Merchants'].nunique() if 'Merchants' in df.columns else 'N/A',
-            df['Sales'].nunique() if 'Sales' in df.columns else 'N/A'
+            len(df_filtered),
+            df_filtered['Merchants'].nunique() if 'Merchants' in df_filtered.columns else 'N/A',
+            df_filtered['Sales'].nunique() if 'Sales' in df_filtered.columns else 'N/A'
         ),
         unsafe_allow_html=True
     )
@@ -535,18 +543,20 @@ if uploaded_file or google_sheet_url:
     
     # Display selected section
     if section == "📈 Overview & Metrics":
-        show_total_questions(df)
+        show_total_questions(df_filtered)
     elif section == "🔥 Feature Analysis":
-        show_most_features(df)
+        show_most_features(df_filtered)
     elif section == "📊 Support Tier Overview":
-        show_feature_support_tier(df)
+        show_feature_support_tier(df_filtered)
     elif section == "🎨 Feature & Support Tier":
-        show_support_tier(df)
+        show_support_tier(df_filtered)
     elif section == "⭐ Sales Performance":
-        show_top_sales_curiosity(df)
+        show_top_sales_curiosity(df_filtered)
     elif section == "👥 Sales & Support Tier":
-        show_sales_support_tier(df)
-    elif section == "📅 Month Comparison":
+        show_sales_support_tier(df_filtered)
+    elif section == "Week Comparison":
+        show_week_comparison(df_full)
+    elif section == "🗓️ Month Comparison":
         show_month_comparison(data_source, uploaded_file, google_sheet_url)
         
 else:
