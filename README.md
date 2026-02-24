@@ -6,16 +6,19 @@ A modern, interactive Streamlit dashboard for analyzing support data from mercha
 
 - **Multiple Data Sources**: Upload CSV/Excel files or connect to Google Sheets
 - **Modern UI**: Clean, light-themed interface with smooth animations and glass-effect cards
-- **Six Key Metrics**:
+- **Eight Key Metrics**:
   1. Total Questions & Merchants
   2. Most Features Asked by Merchant
-  3. Support Tier Overview
-  4. Feature Distribution by Support Tier
+  3. Feature Distribution by Support Tier
+  4. Support Tier Overview
   5. Top Sales with Most Customer's Curiosity
   6. IT Support Tier by Sales
+  7. Week-over-Week Comparison
+  8. Month-over-Month Comparison
 
 - **Interactive Visualizations**: Charts and tables with hover effects
 - **Real-time Analysis**: Instant insights from your support data
+- **Trend Analysis**: Compare performance across weeks and months
 
 ## 📋 Requirements
 
@@ -28,7 +31,15 @@ A modern, interactive Streamlit dashboard for analyzing support data from mercha
 
 1. **Clone or download this repository**
 
-2. **Install required packages**:
+2. **Create a virtual environment (recommended)**:
+```bash
+python -m venv .venv
+source .venv/bin/activate  # On macOS/Linux
+# or
+.venv\Scripts\activate  # On Windows
+```
+
+3. **Install required packages**:
 ```bash
 pip install streamlit pandas openpyxl
 ```
