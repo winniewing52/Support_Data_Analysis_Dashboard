@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 import re
+from datetime import datetime
 from metrics.metric1_total_questions import show_total_questions
 from metrics.metric2_most_features import show_most_features
 from metrics.metric3_feature_support_tier import show_feature_support_tier
@@ -378,6 +379,7 @@ if uploaded_file or google_sheet_url:
         return best_df
 
     # Function to load data from Google Sheets
+    @st.cache_data(ttl=60)  # Cache for 60 seconds
     def load_google_sheet(url, gid=None):
         try:
             # Extract the sheet ID from the URL
@@ -430,6 +432,16 @@ if uploaded_file or google_sheet_url:
     
     if df is None:
         st.stop()
+    
+    # Add manual refresh button for Google Sheets
+    if google_sheet_url:
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col1:
+            if st.button("🔄 Refresh Data", key="refresh_button", help="Manually refresh data from Google Sheet"):
+                st.cache_data.clear()  # Clear the cache
+                st.rerun()  # Rerun the app
+        with col3:
+            st.caption(f"Last updated: {datetime.now().strftime('%H:%M:%S')}")
     
     # Clean column names (already normalized in loader, keep for safety)
     df.columns = df.columns.astype(str).str.strip()
