@@ -504,7 +504,7 @@ if uploaded_file or google_sheet_url:
             "🎨 Feature & Support Tier",
             "⭐ Sales Performance",
             "👥 Sales & Support Tier",
-            "Week Comparison",
+            "⏰ Week Comparison",
             "🗓️ Month Comparison"
         ],
         key="nav_radio",
@@ -554,7 +554,7 @@ if uploaded_file or google_sheet_url:
         show_top_sales_curiosity(df_filtered)
     elif section == "👥 Sales & Support Tier":
         show_sales_support_tier(df_filtered)
-    elif section == "Week Comparison":
+    elif section == "⏰ Week Comparison":
         show_week_comparison(df_full)
     elif section == "🗓️ Month Comparison":
         show_month_comparison(data_source, uploaded_file, google_sheet_url)
