@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from pathlib import Path
 import re
+from urllib.parse import quote
 
 def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gid=None):
     """
@@ -39,9 +40,10 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
             sheet_id = match.group(1)
 
             if sheet_name:
+                encoded_sheet_name = quote(sheet_name)
                 csv_export_url = (
                     f"https://docs.google.com/spreadsheets/d/{sheet_id}/gviz/tq?"
-                    f"tqx=out:csv&sheet={sheet_name}"
+                    f"tqx=out:csv&sheet={encoded_sheet_name}"
                 )
             else:
                 if gid is None:
