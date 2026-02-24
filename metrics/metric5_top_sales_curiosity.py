@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-def show_top_sales_curiosity(df):
+def show_top_sales_curiosity(df, key_suffix=""):
     df.columns = df.columns.str.strip()
     st.header("Top Sales with Most Customer's Curiosity")
     
@@ -10,7 +10,7 @@ def show_top_sales_curiosity(df):
     sort_option = st.selectbox(
         "Sort by:",
         ["Default", "Highest to Lowest", "Lowest to Highest"],
-        key="sort_metric5"
+        key=f"sort_metric5{key_suffix}"
     )
     
     sales_list = ["Danny", "Dylan", "Erica", "Hazwan", "Jun", "Kyle", "Old Sales", "Qis", "Raymond", "Tammy", "Tom"]

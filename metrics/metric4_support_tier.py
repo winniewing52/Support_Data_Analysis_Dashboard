@@ -2,14 +2,14 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-def show_support_tier(df):
+def show_support_tier(df, key_suffix=""):
     st.header("Feature & Support Tier")
     
     # Add sorting option
     sort_option = st.selectbox(
         "Sort by:",
         ["Default", "Highest to Lowest", "Lowest to Highest"],
-        key="sort_metric4"
+        key=f"sort_metric4{key_suffix}"
     )
     
     # Prepare data for interactive chart
@@ -69,10 +69,10 @@ def show_support_tier(df):
     col1, col2 = st.columns(2)
     with col1:
         feature_options = ['All'] + sorted(feature_tier['Features Category'].unique().tolist())
-        selected_feature = st.selectbox('Feature Category:', feature_options, key='filter_feature_tier_table')
+        selected_feature = st.selectbox('Feature Category:', feature_options, key=f'filter_feature_tier_table{key_suffix}')
     with col2:
         tier_options = ['All'] + sorted(feature_tier['IT Support Tier'].unique().tolist())
-        selected_tier = st.selectbox('Support Tier:', tier_options, key='filter_tier_feature_table')
+        selected_tier = st.selectbox('Support Tier:', tier_options, key=f'filter_tier_feature_table{key_suffix}')
     
     # Apply filters
     filtered_feature_tier = feature_tier.copy()

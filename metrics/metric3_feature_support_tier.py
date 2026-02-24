@@ -1,7 +1,7 @@
 import streamlit as st
 import plotly.express as px
 
-def show_feature_support_tier(df):
+def show_feature_support_tier(df, key_suffix=""):
     st.header("📊 Support Tier Overview")
     
     # Count occurrences of each support tier

@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-def show_sales_support_tier(df):
+def show_sales_support_tier(df, key_suffix=""):
     df.columns = df.columns.str.strip()
     st.header("IT Support Tier for Each Sales")
     
@@ -10,7 +10,7 @@ def show_sales_support_tier(df):
     sort_option = st.selectbox(
         "Sort by:",
         ["Default", "Highest to Lowest", "Lowest to Highest"],
-        key="sort_metric6"
+        key=f"sort_metric6{key_suffix}"
     )
     
     # Prepare data for interactive chart
@@ -64,10 +64,10 @@ def show_sales_support_tier(df):
     col1, col2 = st.columns(2)
     with col1:
         sales_options = ['All'] + sorted(sales_tier['Sales'].unique().tolist())
-        selected_sales = st.selectbox('Filter by Sales:', sales_options, key='filter_sales_tier_table')
+        selected_sales = st.selectbox('Filter by Sales:', sales_options, key=f'filter_sales_tier_table{key_suffix}')
     with col2:
         tier_options = ['All'] + sorted(sales_tier['IT Support Tier'].unique().tolist())
-        selected_tier = st.selectbox('Filter by IT Support Tier:', tier_options, key='filter_tier_sales_table')
+        selected_tier = st.selectbox('Filter by IT Support Tier:', tier_options, key=f'filter_tier_sales_table{key_suffix}')
     
     # Apply filters
     filtered_sales_tier = sales_tier.copy()

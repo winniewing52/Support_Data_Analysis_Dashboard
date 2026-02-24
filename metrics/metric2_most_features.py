@@ -2,13 +2,14 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-def show_most_features(df):
+def show_most_features(df, key_suffix=""):
     st.header("Most Features Asked by Merchant")
     
     # Add sorting option
     sort_option = st.selectbox(
         "Sort by:",
-        ["Default", "Highest to Lowest", "Lowest to Highest"]
+        ["Default", "Highest to Lowest", "Lowest to Highest"],
+        key=f"sort_most_features{key_suffix}"
     )
     
     features_list = [
