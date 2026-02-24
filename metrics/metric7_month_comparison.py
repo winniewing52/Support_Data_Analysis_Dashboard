@@ -202,7 +202,14 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
     st.markdown("---")
     
     # Detailed comparison tables
-    comparison_tabs = st.tabs(["Overview", "Top Merchants", "Top Sales", "Top Features", "Support Tier"])
+    comparison_tabs = st.tabs([
+        "Overview",
+        "Top Feature Asked by Merchant",
+        "Support Tier Overview",
+        "Feature & Support Tier",
+        "Top Sales",
+        "IT Support Tier for Each Sales"
+    ])
     
     with comparison_tabs[0]:
         st.subheader("Detailed Comparison")
@@ -215,40 +222,145 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
         st.dataframe(summary_df, use_container_width=True, hide_index=True)
     
     with comparison_tabs[1]:
-        st.subheader("Top Merchants Comparison")
-        if 'Merchants' in df1.columns and 'Merchants' in df2.columns:
-            merchants1 = df1['Merchants'].value_counts().head(10).reset_index()
-            merchants1.columns = ['Merchant', f'{month1_label}']
+        st.subheader("Most Features Asked by Merchant")
+        if 'Features Category' in df1.columns and 'Features Category' in df2.columns:
+            # Get feature counts for both months
+            feature_counts1 = df1['Features Category'].value_counts().head(10).reset_index()
+            feature_counts1.columns = ['Feature', f'{month1_label}']
             
-            merchants2 = df2['Merchants'].value_counts().head(10).reset_index()
-            merchants2.columns = ['Merchant', f'{month2_label}']
+            feature_counts2 = df2['Features Category'].value_counts().head(10).reset_index()
+            feature_counts2.columns = ['Feature', f'{month2_label}']
             
-            merchants_comparison = merchants1.merge(merchants2, on='Merchant', how='outer').fillna(0)
-            merchants_comparison['Change'] = merchants_comparison[f'{month2_label}'] - merchants_comparison[f'{month1_label}']
-            merchants_comparison = merchants_comparison.sort_values(f'{month2_label}', ascending=False).head(10)
-            merchants_comparison.index = merchants_comparison.index + 1
-            
-            st.dataframe(merchants_comparison, use_container_width=True)
+            # Merge for comparison
+            features_comparison = feature_counts1.merge(feature_counts2, on='Feature', how='outer').fillna(0)
+            features_comparison['Change'] = features_comparison[f'{month2_label}'] - features_comparison[f'{month1_label}']
+            features_comparison = features_comparison.sort_values(f'{month2_label}', ascending=False).head(10)
+            features_comparison.index = features_comparison.index + 1
             
             # Bar chart comparison
-            if not merchants_comparison.empty:
+            if not features_comparison.empty:
                 fig = go.Figure(data=[
-                    go.Bar(name=month1_label, x=merchants_comparison['Merchant'], y=merchants_comparison[f'{month1_label}']),
-                    go.Bar(name=month2_label, x=merchants_comparison['Merchant'], y=merchants_comparison[f'{month2_label}'])
+                    go.Bar(name=month1_label, x=features_comparison['Feature'], y=features_comparison[f'{month1_label}']),
+                    go.Bar(name=month2_label, x=features_comparison['Feature'], y=features_comparison[f'{month2_label}'])
                 ])
                 fig.update_layout(
-                    title=f"Top Merchants: {month1_label} vs {month2_label}",
+                    title=f"Top Features: {month1_label} vs {month2_label}",
                     barmode='group',
-                    xaxis_title="Merchant",
-                    yaxis_title="Questions",
+                    xaxis_title="Feature",
+                    yaxis_title="Count",
+                    hovermode='x unified',
+                    height=400,
+                    xaxis_tickangle=-45
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            
+            st.dataframe(features_comparison, use_container_width=True)
+            
+            st.write("---")
+            
+            st.subheader("Feature Requests by Merchant")
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.write(f"**{month1_label}**")
+                pivot1 = pd.pivot_table(df1, index='Merchants', columns='Features Category', aggfunc='size', fill_value=0)
+                st.dataframe(pivot1)
+            
+            with col2:
+                st.write(f"**{month2_label}**")
+                pivot2 = pd.pivot_table(df2, index='Merchants', columns='Features Category', aggfunc='size', fill_value=0)
+                st.dataframe(pivot2)
+        else:
+            st.info("No feature or merchant data available")
+    
+    with comparison_tabs[2]:
+        st.subheader("Support Tier Overview")
+        if 'IT Support Tier' in df1.columns and 'IT Support Tier' in df2.columns:
+            # Get tier counts for both months
+            tier1 = df1['IT Support Tier'].value_counts().reset_index()
+            tier1.columns = ['IT Support Tier', f'{month1_label}']
+            
+            tier2 = df2['IT Support Tier'].value_counts().reset_index()
+            tier2.columns = ['IT Support Tier', f'{month2_label}']
+            
+            # Merge for comparison
+            tier_comparison = tier1.merge(tier2, on='IT Support Tier', how='outer').fillna(0)
+            tier_comparison['Change'] = tier_comparison[f'{month2_label}'] - tier_comparison[f'{month1_label}']
+            tier_comparison.index = tier_comparison.index + 1
+            
+            # Bar chart comparison
+            if not tier_comparison.empty:
+                fig = go.Figure(data=[
+                    go.Bar(name=month1_label, x=tier_comparison['IT Support Tier'], y=tier_comparison[f'{month1_label}']),
+                    go.Bar(name=month2_label, x=tier_comparison['IT Support Tier'], y=tier_comparison[f'{month2_label}'])
+                ])
+                fig.update_layout(
+                    title=f"Support Tier Distribution: {month1_label} vs {month2_label}",
+                    barmode='group',
+                    xaxis_title="IT Support Tier",
+                    yaxis_title="Count",
                     hovermode='x unified',
                     height=400
                 )
                 st.plotly_chart(fig, use_container_width=True)
+            
+            st.dataframe(tier_comparison, use_container_width=True)
         else:
-            st.info("No merchant data available")
+            st.info("No support tier data available")
     
-    with comparison_tabs[2]:
+    with comparison_tabs[3]:
+        st.subheader("Feature & Support Tier")
+        if 'Features Category' in df1.columns and 'IT Support Tier' in df1.columns:
+            # Prepare data for both months
+            feature_tier1 = df1.groupby(['Features Category', 'IT Support Tier']).size().reset_index(name=f'{month1_label}')
+            feature_tier2 = df2.groupby(['Features Category', 'IT Support Tier']).size().reset_index(name=f'{month2_label}')
+            
+            # Merge for comparison
+            feature_tier_comparison = feature_tier1.merge(
+                feature_tier2,
+                on=['Features Category', 'IT Support Tier'],
+                how='outer'
+            ).fillna(0)
+            
+            st.write("*Click on the legend items to show/hide specific support tiers*")
+            
+            # Create comparison bar chart
+            fig = go.Figure()
+            
+            for tier in feature_tier_comparison['IT Support Tier'].unique():
+                tier_data = feature_tier_comparison[feature_tier_comparison['IT Support Tier'] == tier]
+                fig.add_trace(go.Bar(
+                    x=tier_data['Features Category'],
+                    y=tier_data[f'{month1_label}'],
+                    name=f'{tier} ({month1_label})'
+                ))
+            
+            for tier in feature_tier_comparison['IT Support Tier'].unique():
+                tier_data = feature_tier_comparison[feature_tier_comparison['IT Support Tier'] == tier]
+                fig.add_trace(go.Bar(
+                    x=tier_data['Features Category'],
+                    y=tier_data[f'{month2_label}'],
+                    name=f'{tier} ({month2_label})'
+                ))
+            
+            fig.update_layout(
+                title=f'Feature & Support Tier: {month1_label} vs {month2_label}',
+                barmode='group',
+                xaxis_title='Feature Category',
+                yaxis_title='Count',
+                height=500,
+                xaxis_tickangle=-45,
+                hovermode='x unified'
+            )
+            st.plotly_chart(fig, use_container_width=True)
+            
+            st.write("---")
+            pivot = pd.pivot_table(feature_tier_comparison, index='Features Category', columns='IT Support Tier', values=[f'{month1_label}', f'{month2_label}'], aggfunc='sum', fill_value=0)
+            st.dataframe(pivot)
+        else:
+            st.info("No feature or support tier data available")
+    
+    with comparison_tabs[4]:
         st.subheader("Top Sales Comparison")
         if 'Sales' in df1.columns and 'Sales' in df2.columns:
             sales1 = df1['Sales'].value_counts().head(10).reset_index()
@@ -282,69 +394,131 @@ def show_month_comparison(data_source, uploaded_file, google_sheet_url, sheet_gi
         else:
             st.info("No sales data available")
     
-    with comparison_tabs[3]:
-        st.subheader("Top Features Comparison")
-        if 'Feature' in df1.columns and 'Feature' in df2.columns:
-            features1 = df1['Feature'].value_counts().head(10).reset_index()
-            features1.columns = ['Feature', f'{month1_label}']
+    with comparison_tabs[5]:
+        st.subheader("IT Support Tier for Each Sales")
+        if 'Sales' in df1.columns and 'IT Support Tier' in df1.columns:
+            # Prepare data for both months
+            sales_tier1 = df1.groupby(['Sales', 'IT Support Tier']).size().reset_index(name='Count')
+            sales_tier1['Month'] = month1_label
+            sales_tier2 = df2.groupby(['Sales', 'IT Support Tier']).size().reset_index(name='Count')
+            sales_tier2['Month'] = month2_label
             
-            features2 = df2['Feature'].value_counts().head(10).reset_index()
-            features2.columns = ['Feature', f'{month2_label}']
+            # Combine both months
+            sales_tier_combined = pd.concat([sales_tier1, sales_tier2], ignore_index=True)
             
-            features_comparison = features1.merge(features2, on='Feature', how='outer').fillna(0)
-            features_comparison['Change'] = features_comparison[f'{month2_label}'] - features_comparison[f'{month1_label}']
-            features_comparison = features_comparison.sort_values(f'{month2_label}', ascending=False).head(10)
-            features_comparison.index = features_comparison.index + 1
+            # Create ordered x-axis labels
+            unique_sales = sorted(sales_tier_combined['Sales'].unique())
+            ordered_labels = []
+            for sales in unique_sales:
+                ordered_labels.append(f"{sales} ({month1_label})")
+                ordered_labels.append(f"{sales} ({month2_label})")
             
-            st.dataframe(features_comparison, use_container_width=True)
+            st.subheader("Interactive Chart: IT Support Tier by Sales")
+            st.write("*Click on the legend items to show/hide specific support tiers*")
             
-            # Bar chart comparison
-            if not features_comparison.empty:
-                fig = go.Figure(data=[
-                    go.Bar(name=month1_label, x=features_comparison['Feature'], y=features_comparison[f'{month1_label}']),
-                    go.Bar(name=month2_label, x=features_comparison['Feature'], y=features_comparison[f'{month2_label}'])
-                ])
-                fig.update_layout(
-                    title=f"Top Features: {month1_label} vs {month2_label}",
-                    barmode='group',
-                    xaxis_title="Feature",
-                    yaxis_title="Requests",
-                    hovermode='x unified',
-                    height=400
-                )
-                st.plotly_chart(fig, use_container_width=True)
+            # Create interactive stacked bar chart for both months combined
+            fig = go.Figure()
+            
+            for tier in sales_tier_combined['IT Support Tier'].unique():
+                x_labels = []
+                y_values = []
+                
+                for sales in unique_sales:
+                    # Add month 1 data
+                    m1_data = sales_tier_combined[
+                        (sales_tier_combined['Sales'] == sales) &
+                        (sales_tier_combined['IT Support Tier'] == tier) &
+                        (sales_tier_combined['Month'] == month1_label)
+                    ]
+                    x_labels.append(f"{sales} ({month1_label})")
+                    y_values.append(m1_data['Count'].values[0] if len(m1_data) > 0 else 0)
+                    
+                    # Add month 2 data
+                    m2_data = sales_tier_combined[
+                        (sales_tier_combined['Sales'] == sales) &
+                        (sales_tier_combined['IT Support Tier'] == tier) &
+                        (sales_tier_combined['Month'] == month2_label)
+                    ]
+                    x_labels.append(f"{sales} ({month2_label})")
+                    y_values.append(m2_data['Count'].values[0] if len(m2_data) > 0 else 0)
+                
+                fig.add_trace(go.Bar(
+                    x=x_labels,
+                    y=y_values,
+                    name=tier
+                ))
+            
+            fig.update_layout(
+                title=f'IT Support Tier Distribution by Sales Person - {month1_label} vs {month2_label}',
+                barmode='stack',
+                xaxis_tickangle=-45,
+                height=600,
+                xaxis_title='Sales Person',
+                yaxis_title='Number of Questions',
+                legend_title_text='IT Support Tier (Click to toggle)'
+            )
+            st.plotly_chart(fig, use_container_width=True)
+            
+            st.write("---")
+            
+            # Month 1 Details
+            st.subheader(f"Sales & IT Support Tier Details - {month1_label}")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                sales_options = ['All'] + sorted(sales_tier1['Sales'].unique().tolist())
+                selected_sales_m1 = st.selectbox('Filter by Sales:', sales_options, key='filter_sales_tier_m1')
+            with col2:
+                tier_options = ['All'] + sorted(sales_tier1['IT Support Tier'].unique().tolist())
+                selected_tier_m1 = st.selectbox('Filter by IT Support Tier:', tier_options, key='filter_tier_sales_m1')
+            
+            # Apply filters for month 1
+            filtered_sales_tier_m1 = sales_tier1.copy()
+            if selected_sales_m1 != 'All':
+                filtered_sales_tier_m1 = filtered_sales_tier_m1[filtered_sales_tier_m1['Sales'] == selected_sales_m1]
+            if selected_tier_m1 != 'All':
+                filtered_sales_tier_m1 = filtered_sales_tier_m1[filtered_sales_tier_m1['IT Support Tier'] == selected_tier_m1]
+            
+            table_data_m1 = filtered_sales_tier_m1.sort_values('Count', ascending=False).reset_index(drop=True)
+            table_data_m1.index = table_data_m1.index + 1
+            st.dataframe(table_data_m1)
+            
+            st.write("---")
+            
+            # Month 2 Details
+            st.subheader(f"Sales & IT Support Tier Details - {month2_label}")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                sales_options = ['All'] + sorted(sales_tier2['Sales'].unique().tolist())
+                selected_sales_m2 = st.selectbox('Filter by Sales:', sales_options, key='filter_sales_tier_m2')
+            with col2:
+                tier_options = ['All'] + sorted(sales_tier2['IT Support Tier'].unique().tolist())
+                selected_tier_m2 = st.selectbox('Filter by IT Support Tier:', tier_options, key='filter_tier_sales_m2')
+            
+            # Apply filters for month 2
+            filtered_sales_tier_m2 = sales_tier2.copy()
+            if selected_sales_m2 != 'All':
+                filtered_sales_tier_m2 = filtered_sales_tier_m2[filtered_sales_tier_m2['Sales'] == selected_sales_m2]
+            if selected_tier_m2 != 'All':
+                filtered_sales_tier_m2 = filtered_sales_tier_m2[filtered_sales_tier_m2['IT Support Tier'] == selected_tier_m2]
+            
+            table_data_m2 = filtered_sales_tier_m2.sort_values('Count', ascending=False).reset_index(drop=True)
+            table_data_m2.index = table_data_m2.index + 1
+            st.dataframe(table_data_m2)
+            
+            st.write("---")
+            
+            # Show pivot tables for both months
+            st.subheader("Support Tier Summary by Sales")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.write(f"**{month1_label}**")
+                pivot1 = pd.pivot_table(df1, index='Sales', columns='IT Support Tier', aggfunc='size', fill_value=0)
+                st.dataframe(pivot1)
+            with col2:
+                st.write(f"**{month2_label}**")
+                pivot2 = pd.pivot_table(df2, index='Sales', columns='IT Support Tier', aggfunc='size', fill_value=0)
+                st.dataframe(pivot2)
         else:
-            st.info("No feature data available")
-    
-    with comparison_tabs[4]:
-        st.subheader("Support Tier Comparison")
-        if 'Support Tier' in df1.columns and 'Support Tier' in df2.columns:
-            tier1 = df1['Support Tier'].value_counts().reset_index()
-            tier1.columns = ['Support Tier', f'{month1_label}']
-            
-            tier2 = df2['Support Tier'].value_counts().reset_index()
-            tier2.columns = ['Support Tier', f'{month2_label}']
-            
-            tier_comparison = tier1.merge(tier2, on='Support Tier', how='outer').fillna(0)
-            tier_comparison['Change'] = tier_comparison[f'{month2_label}'] - tier_comparison[f'{month1_label}']
-            tier_comparison.index = tier_comparison.index + 1
-            
-            st.dataframe(tier_comparison, use_container_width=True)
-            
-            # Bar chart comparison
-            if not tier_comparison.empty:
-                fig = go.Figure(data=[
-                    go.Bar(name=month1_label, x=tier_comparison['Support Tier'], y=tier_comparison[f'{month1_label}']),
-                    go.Bar(name=month2_label, x=tier_comparison['Support Tier'], y=tier_comparison[f'{month2_label}'])
-                ])
-                fig.update_layout(
-                    title=f"Support Tier Distribution: {month1_label} vs {month2_label}",
-                    barmode='group',
-                    xaxis_title="Support Tier",
-                    yaxis_title="Count",
-                    hovermode='x unified',
-                    height=400
-                )
-                st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("No support tier data available")
+            st.info("No sales or support tier data available")
