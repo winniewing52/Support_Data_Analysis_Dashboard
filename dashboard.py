@@ -24,7 +24,7 @@ st.set_page_config(
 load_css()
 
 # Dashboard title with icon
-st.markdown("<h1>📊 Support Data Analytics Dashboard</h1>", unsafe_allow_html=True)
+st.markdown("<h1>Support Data Analytics Dashboard</h1>", unsafe_allow_html=True)
 
 # Data source selector
 data_source = st.radio(
@@ -37,7 +37,7 @@ uploaded_file = None
 google_sheet_url = None
 
 if data_source == "📁 Upload File":
-    # File uploader with modern design
+    # File uploader
     uploaded_file = st.file_uploader(
         "📁 Upload your Excel/CSV file",
         type=["csv", "xlsx"],
@@ -98,7 +98,6 @@ if uploaded_file or google_sheet_url:
         try:
             xls = pd.ExcelFile(file, engine="openpyxl")
         except Exception:
-            # Fallback without specifying engine
             xls = pd.ExcelFile(file)
 
         best_df = None
@@ -341,7 +340,7 @@ if uploaded_file or google_sheet_url:
         show_month_comparison(data_source, uploaded_file, google_sheet_url)
         
 else:
-    # Modern welcome screen
+    # Welcome screen
     st.info(
         "👋 **Welcome to the Support Data Dashboard!** Please upload your data file to begin analysis.",
         icon="ℹ️"
