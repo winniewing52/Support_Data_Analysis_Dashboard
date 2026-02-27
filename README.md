@@ -16,7 +16,7 @@ A modern, interactive Streamlit dashboard for analyzing support data from mercha
   7. Week-over-Week Comparison
   8. Month-over-Month Comparison
 
-- **Interactive Visualizations**: Charts and tables with hover effects
+- **Interactive Visualizations**: Plotly-powered charts and tables with hover effects and zoom capabilities
 - **Real-time Analysis**: Instant insights from your support data
 - **Trend Analysis**: Compare performance across weeks and months
 
@@ -25,6 +25,7 @@ A modern, interactive Streamlit dashboard for analyzing support data from mercha
 - Python 3.7+
 - Streamlit
 - Pandas
+- Plotly (for interactive charts)
 - openpyxl (for Excel file support)
 
 ## 🚀 Installation
@@ -41,7 +42,7 @@ source .venv/bin/activate  # On macOS/Linux
 
 3. **Install required packages**:
 ```bash
-pip install streamlit pandas openpyxl
+pip install -r requirements.txt
 ```
 
 ## 💻 Usage
