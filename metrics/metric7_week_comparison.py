@@ -88,19 +88,18 @@ def show_week_comparison(df):
         )
     
     with col2:
+        # Filter out week1 from available options for week2
+        available_weeks_for_week2 = [w for w in available_weeks if w != week1]
+        
         # Default to the next week if available, otherwise the last week
-        default_week2_idx = min(1, len(available_weeks) - 1)
+        default_week2_idx = min(1, len(available_weeks_for_week2) - 1)
         week2 = st.selectbox(
             "Select Second Week:",
-            available_weeks,
+            available_weeks_for_week2,
             index=default_week2_idx,
             format_func=lambda x: f"Week {x}",
             key="week2_selector"
         )
-    
-    if week1 == week2:
-        st.warning("⚠️ Please select two different weeks to compare.")
-        return
     
     # Filter data for selected weeks
     df_week1 = df_with_weeks[df_with_weeks['Week_Number'] == week1]
